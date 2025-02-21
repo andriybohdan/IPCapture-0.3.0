@@ -21,9 +21,9 @@ public class IPCapture extends PImage implements Runnable {
   private BufferedInputStream httpIn;
   private ByteArrayOutputStream jpgOut;
   private volatile boolean keepAlive;
-  
+
   public final static String VERSION = "0.2.1";
-  
+
   public IPCapture(PApplet parent) {
     this(parent, "", "", "");
   }
@@ -40,7 +40,7 @@ public class IPCapture extends PImage implements Runnable {
     this.frameAvailable = false;
     this.keepAlive = false;
   }
-  
+
   public boolean isAlive() {
     return streamReader.isAlive();
   }
@@ -48,7 +48,7 @@ public class IPCapture extends PImage implements Runnable {
   public boolean isAvailable() {
     return frameAvailable;
   }
-  
+
   public void start() {
     if (streamReader != null && streamReader.isAlive()) {
       System.out.println("Camera already started");
@@ -58,7 +58,7 @@ public class IPCapture extends PImage implements Runnable {
     keepAlive = true;
     streamReader.start();
   }
-  
+
   public void start(String urlString, String user, String pass) {
     this.urlString = urlString;
     this.user = user;
@@ -79,15 +79,15 @@ public class IPCapture extends PImage implements Runnable {
       System.err.println(e.getMessage());
     }
   }
-  
+
   public void dispose() {
     stop();
   }
-  
+
   public void run() {
     URL url;
     Base64Encoder base64 = new Base64Encoder();
-    
+
     try {
       url = new URL(urlString);
     }
@@ -95,10 +95,12 @@ public class IPCapture extends PImage implements Runnable {
       System.err.println("Invalid URL");
       return;
     }
-    
+
     try {
-      conn = (HttpURLConnection)url.openConnection();
-      conn.setRequestProperty("Authorization", "Basic " + base64.encode(user + ":" + pass));
+      conn = (HttpURLConnection) url.openConnection();
+      if (user != null && pass != null) {
+        conn.setRequestProperty("Authorization", "Basic " + base64.encode(user + ":" + pass));
+      }
     }
     catch (IOException e) {
       System.err.println("Unable to connect: " + e.getMessage());
@@ -115,7 +117,7 @@ public class IPCapture extends PImage implements Runnable {
 
     int prev = 0;
     int cur = 0;
-    
+
     try {
       while (keepAlive && (cur = httpIn.read()) >= 0) {
         if (prev == 0xFF && cur == 0xD8) {
@@ -147,7 +149,7 @@ public class IPCapture extends PImage implements Runnable {
     }
     conn.disconnect();
   }
-  
+
   public void read() {
     ByteArrayInputStream jpgIn;
     // BufferedImage bufImg;
